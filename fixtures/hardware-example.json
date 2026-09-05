@@ -1,0 +1,9 @@
+{
+  "name": "Illustrative 3 GHz / 256-bit / 30 GB/s profile",
+  "source": "Hypothetical learning assumptions; not detected hardware",
+  "clock_ghz": 3.0,
+  "vector_lanes_u64": 4,
+  "vector_ops_per_cycle": 2.0,
+  "bandwidth_gbps": 30.0,
+  "dependent_load_cycles": 8.0
+}
