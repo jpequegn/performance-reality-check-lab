@@ -55,6 +55,13 @@ def reference(case, data):
     return sum(data)
 
 
+def input_digest(data):
+    value = 14695981039346656037
+    for word in data:
+        value = ((value ^ word) * 1099511628211) & MASK
+    return value
+
+
 def reduction_loop(data):
     total = 0
     for value in data:
