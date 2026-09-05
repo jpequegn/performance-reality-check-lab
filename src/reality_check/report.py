@@ -201,6 +201,18 @@ def validate_report(report):
         derived = summarize(row["batch_ns"], row["repeats"], settings, case.size)
         if any(row[key] != value for key, value in derived.items()):
             raise ValueError("Reported statistics disagree with raw samples")
+        allocation = row["allocation"]
+        metrics = ("calls", "bytes") if row["language"] == "rust" else ("peak_bytes",)
+        if not isinstance(allocation.get("method"), str) or not allocation["method"]:
+            raise ValueError("Missing allocation method")
+        if any(type(allocation.get(key)) is not int or allocation[key] < 0 for key in metrics):
+            raise ValueError("Invalid allocation measurement")
+        if "model" in row:
+            model = ceiling(
+                case, row["variant"], Hardware(**row["model"]["assumptions"]), row["median_ns"]
+            )
+            if row["model"] != model:
+                raise ValueError("Reported model disagrees with its assumptions")
     if report["valid"] != all(r["quality"]["valid"] for r in report["rows"]):
         raise ValueError("Report quality status is inconsistent")
     return report
@@ -213,4 +225,8 @@ def load_report(output: Path):
         raise ValueError("Evidence manifest changed since measurement")
     if report["compiler_flags"] != manifest["compiler_flags"]:
         raise ValueError("Compiler provenance mismatch")
+    if report["environment"]["rustc"] != manifest["rustc"]:
+        raise ValueError("Compiler version mismatch")
+    if any("model" not in row for row in report["rows"]):
+        raise ValueError("Report is missing its model assumptions")
     return report

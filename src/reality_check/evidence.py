@@ -99,10 +99,28 @@ def verify(output: Path):
     manifest = json.loads((output / "manifest.json").read_text())
     if manifest.get("schema_version") != 1 or not manifest.get("artifacts"):
         raise ValueError("Invalid evidence manifest")
+    paths = [record["path"] for record in manifest["artifacts"]]
+    required = {
+        "O0.s",
+        "O0.ll",
+        "O3.s",
+        "O3.ll",
+        "build/reality-kernels",
+        "build/libreality_kernels.rlib",
+    }
+    required.update("sources/" + name for name in manifest["source_hashes"])
+    if len(set(paths)) != len(paths) or not required.issubset(paths):
+        raise ValueError("Incomplete or duplicate evidence records")
+    if manifest.get("binary") != "build/reality-kernels":
+        raise ValueError("Invalid binary provenance")
     for record in manifest["artifacts"]:
         artifact = (output / record["path"]).resolve()
         if not artifact.is_relative_to(output) or not artifact.is_file():
             raise ValueError("Missing or escaped evidence artifact")
         if digest(artifact) != record["sha256"]:
             raise ValueError(f"Changed evidence artifact: {record['path']}")
+    for name, expected in manifest["source_hashes"].items():
+        source = (output / "sources" / name).resolve()
+        if not source.is_relative_to(output / "sources") or digest(source) != expected:
+            raise ValueError("Source snapshot does not match provenance")
     return manifest
