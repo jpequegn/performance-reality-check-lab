@@ -1,0 +1,29 @@
+[project]
+name = "performance-reality-check-lab"
+version = "0.1.0"
+description = "Python/Rust kernel timing with compiler evidence and explicit hardware models"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+reality-check = "reality_check.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reality_check"]
+
+[dependency-groups]
+dev = ["pytest>=8.4,<9", "ruff>=0.12,<0.13"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
